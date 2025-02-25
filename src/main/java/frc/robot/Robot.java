@@ -34,8 +34,6 @@ public class Robot extends TimedRobot {
   private String m_autoSelected;
   private final SendableChooser<String> m_chooser = new SendableChooser<>();
 
-  private final SparkMax rollerMotor = new SparkMax(15, MotorType.kBrushed);
-
   private final SparkMax rightLeader = new SparkMax(11, MotorType.kBrushed);
   private final SparkMax rightFollower = new SparkMax(12, MotorType.kBrushed);
   private final SparkMax leftLeader = new SparkMax(13, MotorType.kBrushed);
@@ -43,14 +41,15 @@ public class Robot extends TimedRobot {
 
   private final DifferentialDrive myDrive = new DifferentialDrive(leftLeader, rightLeader);
 
+  private final SparkMax elevMotor = new SparkMax(15, MotorType.kBrushed);
+
   private final SparkMaxConfig driveConfig = new SparkMaxConfig();
   private final SparkMaxConfig rollerConfig = new SparkMaxConfig();
 
   private final Timer timer1 = new Timer();
 
-  private final double ROLLER_EJECT_VALUE = 0.44;
+  private final double ELEV_SPEED_VALUE = 0;
   private double DRIVE_SPEED = 1;
-  private double ROLLER_OUT = 0;
 
   private final XboxController gamepad1 = new XboxController(0);
   private final XboxController gamepad2 = new XboxController(1);
@@ -84,7 +83,7 @@ public class Robot extends TimedRobot {
   
     rollerConfig.smartCurrentLimit(60);
     rollerConfig.voltageCompensation(10);
-    rollerMotor.configure(driveConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
+    elevMotor.configure(driveConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
 
     timer1.start();
   }
@@ -121,33 +120,7 @@ public class Robot extends TimedRobot {
   @Override
   public void autonomousPeriodic() {
     switch (m_autoSelected) {
-      case kCenterCoral:
-        if(timer1.get() < 1.85){
-          myDrive.tankDrive(0.5, 0.5);
-        }
-        else if (timer1.get() < 3){ 
-          myDrive.tankDrive(0, 0);
-        }
-        else if (timer1.get() < 5.5) {
-          myDrive.tankDrive(0, 0);
-          rollerMotor.set(ROLLER_EJECT_VALUE);
-        }
-        else {
-          myDrive.tankDrive(0, 0);
-          rollerMotor.set(0);
-        }
-        break;
-      case kJustDrive:
-        if(timer1.get() < 0.9){
-          myDrive.tankDrive(0.5, 0.5);
-        }
-        else {
-          myDrive.tankDrive(0, 0);
-        }
-        break;
-      case kDefaultAuto:
       default:
-
       break;
     }
   }
@@ -159,33 +132,17 @@ public class Robot extends TimedRobot {
   /** This function is called periodically during operator control. */
   @Override
   public void teleopPeriodic() {
-    /*if(gamepad1.getLeftBumperButton()){
-      if (DRIVE_SPEED < 1){
-        DRIVE_SPEED = DRIVE_SPEED + 0.2;
-      }
-    }
-    else if (gamepad1.getRightBumperButton()){
-      if (DRIVE_SPEED > 0){
-        DRIVE_SPEED = DRIVE_SPEED - 0.2;
-      }
-    }*/
-    //tank drive
-    //myDrive.tankDrive(gamepad1.getLeftY(), gamepad1.getRightY());
-
-    //arcade style
     myDrive.arcadeDrive(gamepad1.getLeftY()/DRIVE_SPEED, gamepad1.getRightX()/DRIVE_SPEED);
 
-    if(gamepad2.getAButton()){
-      ROLLER_OUT = ROLLER_EJECT_VALUE;
+    if(gamepad1.getAButtonPressed()){
+      ELEV_SPEED_VALUE = 1;
     }
-    else {
-      //for left stick y to control roller
-      //ROLLER_OUT = -gamepad2.getLeftY();
-
-      //for triggers to control roller
-      ROLLER_OUT = gamepad2.getRightTriggerAxis() - gamepad2.getLeftTriggerAxis();
+    else if (gamepad1.getBButtonPressed()){
+      ELEV_SPEED_VALUE = -1;
+    } else if (gamepad1.getYButtonPressed()){
+      ELEV_SPEED_VALUE = 0;
     }
-    rollerMotor.set(ROLLER_OUT);
+    rollerMotor.set(ELEV);
   }
 
   /** This function is called once when the robot is disabled. */
