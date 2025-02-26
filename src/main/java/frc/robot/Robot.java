@@ -34,21 +34,22 @@ public class Robot extends TimedRobot {
   private String m_autoSelected;
   private final SendableChooser<String> m_chooser = new SendableChooser<>();
 
-  private final SparkMax rightLeader = new SparkMax(11, MotorType.kBrushed);
-  private final SparkMax rightFollower = new SparkMax(12, MotorType.kBrushed);
-  private final SparkMax leftLeader = new SparkMax(13, MotorType.kBrushed);
-  private final SparkMax leftFollower = new SparkMax(14, MotorType.kBrushed);
+  private final SparkMax rightLeader = new SparkMax(12, MotorType.kBrushed);
+  private final SparkMax rightFollower = new SparkMax(11, MotorType.kBrushed);
+  private final SparkMax leftLeader = new SparkMax(16, MotorType.kBrushed);
+  private final SparkMax leftFollower = new SparkMax(13, MotorType.kBrushed);
 
   private final DifferentialDrive myDrive = new DifferentialDrive(leftLeader, rightLeader);
 
-  private final SparkMax elevMotor = new SparkMax(15, MotorType.kBrushed);
+  private final SparkMax elevMotor = new SparkMax(14, MotorType.kBrushed);
+  private final Spark test = new Spark(0);
 
   private final SparkMaxConfig driveConfig = new SparkMaxConfig();
   private final SparkMaxConfig rollerConfig = new SparkMaxConfig();
 
   private final Timer timer1 = new Timer();
 
-  private final double ELEV_SPEED_VALUE = 0;
+  private double ELEV_SPEED_VALUE = 0;
   private double DRIVE_SPEED = 1;
 
   private final XboxController gamepad1 = new XboxController(0);
@@ -127,7 +128,9 @@ public class Robot extends TimedRobot {
 
   /** This function is called once when teleop is enabled. */
   @Override
-  public void teleopInit() {}
+  public void teleopInit() {
+    test.set(0);
+  }
 
   /** This function is called periodically during operator control. */
   @Override
@@ -142,7 +145,9 @@ public class Robot extends TimedRobot {
     } else if (gamepad1.getYButtonPressed()){
       ELEV_SPEED_VALUE = 0;
     }
-    rollerMotor.set(ELEV);
+    elevMotor.set(ELEV_SPEED_VALUE);
+    
+
   }
 
   /** This function is called once when the robot is disabled. */
