@@ -49,15 +49,12 @@ public class Robot extends TimedRobot {
 
   private final Timer timer1 = new Timer();
 
-  private double ELEV_SPEED_VALUE = 0;
-  private double DRIVE_SPEED = 1;
-
   private final XboxController gamepad1 = new XboxController(0);
   private final XboxController gamepad2 = new XboxController(1);
 
-  final double BASE_SPEED = 0.4;
-  final double MAX_TRIGGER_BOOST = 0.6;
-  final double TURN_SENSITIVITY = 0.7;
+  final double BASE_SPEED = 0.6;
+  final double MAX_TRIGGER_BOOST = 0.4;
+  final double TURN_SENSITIVITY = 0.5;
   
   /**
    * This function is run when the robot is first started up and should be used for any
@@ -143,24 +140,20 @@ public class Robot extends TimedRobot {
     //myDrive.arcadeDrive(gamepad1.getLeftY()/DRIVE_SPEED, gamepad1.getRightX()/DRIVE_SPEED);
 
     //custom drive
-    double leftStickY = gamepad1.getLeftY();
-    double rightStickX = gamepad1.getRightX();
-    double rightTrigger = gamepad1.getRightTriggerAxis();
-    double leftTrigger = gamepad1.getLeftTriggerAxis();
     double forwardSpeed = 0;
-    if (Math.abs(leftStickY) > 0.1) {
-        forwardSpeed = Math.signum(leftStickY) * (BASE_SPEED + (rightTrigger * MAX_TRIGGER_BOOST));
-        forwardSpeed *= (1 - leftTrigger);
+    if (Math.abs(gamepad1.getLeftY()) > 0.1) {
+        forwardSpeed = Math.signum(gamepad1.getLeftY()) * (BASE_SPEED + (gamepad1.getRightTriggerAxis() * MAX_TRIGGER_BOOST));
+        forwardSpeed *= (1 - gamepad1.getLeftTriggerAxis());
     }
 
-    if (leftTrigger > 0.5 && Math.abs(leftStickY) <= 0.1) {
+    if (gamepad1.getLeftTriggerAxis() > 0.5 && Math.abs(gamepad1.getLeftY()) <= 0.1) {
         forwardSpeed = 0;
         myDrive.setMaxOutput(0.1);
     } else {
         myDrive.setMaxOutput(1.0);
     }
     
-    myDrive.arcadeDrive(forwardSpeed, rightStickX * TURN_SENSITIVITY);
+    myDrive.arcadeDrive(forwardSpeed, gamepad1.getRightX() * TURN_SENSITIVITY);
 
     //traditional custom
     //double leftStickY = gamepad1.getLeftY();
