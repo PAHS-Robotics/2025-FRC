@@ -151,7 +151,19 @@ public class Robot extends TimedRobot {
         forwardSpeed = Math.signum(leftStickY) * (BASE_SPEED + (rightTrigger * MAX_TRIGGER_BOOST));
     }
     myDrive.arcadeDrive(forwardSpeed, rightStickX * TURN_SENSITIVITY);
-      
+
+    //traditional custom
+    //double leftStickY = gamepad1.getLeftY();
+    //double rightStickX = gamepad1.getRightX();
+    //double rightTrigger = gamepad1.getRightTriggerAxis();
+    
+    //double currentMaxSpeed = BASE_SPEED + (rightTrigger * MAX_TRIGGER_BOOST);
+    
+    //double moveValue = leftStickY * currentMaxSpeed;
+    //double rotateValue = rightStickX * TURN_SENSITIVITY;
+    
+    //myDrive.arcadeDrive(moveValue, rotateValue);
+    
     //elevator motor
     double leftStickY = gamepad2.getLeftY();
     elevMotor.set(-leftStickY);
