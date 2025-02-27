@@ -55,6 +55,10 @@ public class Robot extends TimedRobot {
   private final XboxController gamepad1 = new XboxController(0);
   private final XboxController gamepad2 = new XboxController(1);
 
+  final double BASE_SPEED = 0.4;
+  final double MAX_TRIGGER_BOOST = 0.6;
+  final double TURN_SENSITIVITY = 0.7;
+  
   /**
    * This function is run when the robot is first started up and should be used for any
    * initialization code.
@@ -135,19 +139,22 @@ public class Robot extends TimedRobot {
   /** This function is called periodically during operator control. */
   @Override
   public void teleopPeriodic() {
-    myDrive.arcadeDrive(gamepad1.getLeftY()/DRIVE_SPEED, gamepad1.getRightX()/DRIVE_SPEED);
+    //arcade drive
+    //myDrive.arcadeDrive(gamepad1.getLeftY()/DRIVE_SPEED, gamepad1.getRightX()/DRIVE_SPEED);
 
-    if(gamepad1.getAButtonPressed()){
-      ELEV_SPEED_VALUE = 1;
+    //custom drive
+    double leftStickY = gamepad1.getLeftY();
+    double rightStickX = gamepad1.getRightX();
+    double rightTrigger = gamepad1.getRightTriggerAxis();
+    double forwardSpeed = 0;
+    if (Math.abs(leftStickY) > 0.1) {
+        forwardSpeed = Math.signum(leftStickY) * (BASE_SPEED + (rightTrigger * MAX_TRIGGER_BOOST));
     }
-    else if (gamepad1.getBButtonPressed()){
-      ELEV_SPEED_VALUE = -1;
-    } else if (gamepad1.getYButtonPressed()){
-      ELEV_SPEED_VALUE = 0;
-    }
-    elevMotor.set(ELEV_SPEED_VALUE);
-    
-
+    myDrive.arcadeDrive(forwardSpeed, rightStickX * TURN_SENSITIVITY);
+      
+    //elevator motor
+    double leftStickY = gamepad2.getLeftY();
+    elevMotor.set(-leftStickY);
   }
 
   /** This function is called once when the robot is disabled. */
