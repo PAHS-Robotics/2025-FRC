@@ -146,10 +146,20 @@ public class Robot extends TimedRobot {
     double leftStickY = gamepad1.getLeftY();
     double rightStickX = gamepad1.getRightX();
     double rightTrigger = gamepad1.getRightTriggerAxis();
+    double leftTrigger = gamepad1.getLeftTriggerAxis();
     double forwardSpeed = 0;
     if (Math.abs(leftStickY) > 0.1) {
         forwardSpeed = Math.signum(leftStickY) * (BASE_SPEED + (rightTrigger * MAX_TRIGGER_BOOST));
+        forwardSpeed *= (1 - leftTrigger);
     }
+
+    if (leftTrigger > 0.5 && Math.abs(leftStickY) <= 0.1) {
+        forwardSpeed = 0;
+        myDrive.setMaxOutput(0.1);
+    } else {
+        myDrive.setMaxOutput(1.0);
+    }
+    
     myDrive.arcadeDrive(forwardSpeed, rightStickX * TURN_SENSITIVITY);
 
     //traditional custom
