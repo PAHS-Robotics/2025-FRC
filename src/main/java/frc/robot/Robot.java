@@ -137,39 +137,11 @@ public class Robot extends TimedRobot {
   @Override
   public void teleopPeriodic() {
     //arcade drive
-    //myDrive.arcadeDrive(gamepad1.getLeftY()/DRIVE_SPEED, gamepad1.getRightX()/DRIVE_SPEED);
-
-    //custom drive
-    double forwardSpeed = 0;
-    if (Math.abs(gamepad1.getLeftY()) > 0.1) {
-        forwardSpeed = Math.signum(gamepad1.getLeftY()) * (BASE_SPEED + (gamepad1.getRightTriggerAxis() * MAX_TRIGGER_BOOST));
-        forwardSpeed *= (1 - gamepad1.getLeftTriggerAxis());
-    }
-
-    if (gamepad1.getLeftTriggerAxis() > 0.5 && Math.abs(gamepad1.getLeftY()) <= 0.1) {
-        forwardSpeed = 0;
-        myDrive.setMaxOutput(0.1);
-    } else {
-        myDrive.setMaxOutput(1.0);
-    }
-    
-    myDrive.arcadeDrive(forwardSpeed, gamepad1.getRightX() * TURN_SENSITIVITY);
-
-    //traditional custom
-    //double leftStickY = gamepad1.getLeftY();
-    //double rightStickX = gamepad1.getRightX();
-    //double rightTrigger = gamepad1.getRightTriggerAxis();
-    
-    //double currentMaxSpeed = BASE_SPEED + (rightTrigger * MAX_TRIGGER_BOOST);
-    
-    //double moveValue = leftStickY * currentMaxSpeed;
-    //double rotateValue = rightStickX * TURN_SENSITIVITY;
-    
-    //myDrive.arcadeDrive(moveValue, rotateValue);
+    myDrive.arcadeDrive(gamepad1.getLeftY()/DRIVE_SPEED, gamepad1.getRightX()/DRIVE_SPEED);
     
     //elevator motor
     double leftStickY = gamepad2.getLeftY();
-    elevMotor.set(-leftStickY);
+    elevMotor.set(-leftStickY*0.4);
   }
 
   /** This function is called once when the robot is disabled. */
