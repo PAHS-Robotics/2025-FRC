@@ -42,7 +42,7 @@ public class Robot extends TimedRobot {
   private final DifferentialDrive myDrive = new DifferentialDrive(leftLeader, rightLeader);
 
   private final SparkMax elevMotor = new SparkMax(14, MotorType.kBrushed);
-  private final Spark test = new Spark(0);
+  private final SparkMax coralMotor = new SparkMax(17, MotorType.kBrushless);
 
   private final SparkMaxConfig driveConfig = new SparkMaxConfig();
   private final SparkMaxConfig rollerConfig = new SparkMaxConfig();
@@ -82,6 +82,7 @@ public class Robot extends TimedRobot {
     rollerConfig.smartCurrentLimit(60);
     rollerConfig.voltageCompensation(10);
     elevMotor.configure(driveConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
+    coralMotor.configure(driveConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
 
     timer1.start();
   }
@@ -126,7 +127,6 @@ public class Robot extends TimedRobot {
   /** This function is called once when teleop is enabled. */
   @Override
   public void teleopInit() {
-    test.set(0);
   }
 
   /** This function is called periodically during operator control. */
@@ -138,6 +138,10 @@ public class Robot extends TimedRobot {
     //elevator motor
     double leftStickY = gamepad2.getLeftY();
     elevMotor.set(-leftStickY*0.4);
+
+    //coral motor
+    double rightStickY = gamepad2.getRightY();
+    coralMotor.set(rightStickY);
   }
 
   /** This function is called once when the robot is disabled. */
