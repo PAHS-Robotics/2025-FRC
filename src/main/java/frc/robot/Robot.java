@@ -15,6 +15,7 @@ import com.revrobotics.spark.config.SparkMaxConfig;
 import com.revrobotics.spark.SparkLowLevel.MotorType;
 import com.revrobotics.spark.SparkBase.PersistMode;
 import com.revrobotics.spark.SparkBase.ResetMode;
+import com.revrobotics.CANSparkMax;
 
 import edu.wpi.first.wpilibj.drive.DifferentialDrive;
 import edu.wpi.first.wpilibj.motorcontrol.Spark;
@@ -51,10 +52,6 @@ public class Robot extends TimedRobot {
 
   private final XboxController gamepad1 = new XboxController(0);
   private final XboxController gamepad2 = new XboxController(1);
-
-  final double BASE_SPEED = 0.6;
-  final double MAX_TRIGGER_BOOST = 0.4;
-  final double TURN_SENSITIVITY = 0.5;
   
   /**
    * This function is run when the robot is first started up and should be used for any
@@ -66,14 +63,19 @@ public class Robot extends TimedRobot {
     m_chooser.addOption("Just Drive", kJustDrive);
     SmartDashboard.putData("Auto choices", m_chooser);
 
-    driveConfig.smartCurrentLimit(60);
+    driveConfig.smartCurrentLimit(80);
     driveConfig.voltageCompensation(12);
-
+/*
     driveConfig.follow(leftLeader);
     leftFollower.configure(driveConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
 
     driveConfig.follow(rightLeader);
     rightFollower.configure(driveConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
+*/
+    //test
+    leftFollower.follow(leftLeader);
+    rightFollower.follow(rightLeader);
+    //end test
 
     driveConfig.disableFollowerMode();
     driveConfig.inverted(true);
@@ -137,39 +139,11 @@ public class Robot extends TimedRobot {
   @Override
   public void teleopPeriodic() {
     //arcade drive
-    //myDrive.arcadeDrive(gamepad1.getLeftY()/DRIVE_SPEED, gamepad1.getRightX()/DRIVE_SPEED);
-
-    //custom drive
-    double forwardSpeed = 0;
-    if (Math.abs(gamepad1.getLeftY()) > 0.1) {
-        forwardSpeed = Math.signum(gamepad1.getLeftY()) * (BASE_SPEED + (gamepad1.getRightTriggerAxis() * MAX_TRIGGER_BOOST));
-        forwardSpeed *= (1 - gamepad1.getLeftTriggerAxis());
-    }
-
-    if (gamepad1.getLeftTriggerAxis() > 0.5 && Math.abs(gamepad1.getLeftY()) <= 0.1) {
-        forwardSpeed = 0;
-        myDrive.setMaxOutput(0.1);
-    } else {
-        myDrive.setMaxOutput(1.0);
-    }
-    
-    myDrive.arcadeDrive(forwardSpeed, gamepad1.getRightX() * TURN_SENSITIVITY);
-
-    //traditional custom
-    //double leftStickY = gamepad1.getLeftY();
-    //double rightStickX = gamepad1.getRightX();
-    //double rightTrigger = gamepad1.getRightTriggerAxis();
-    
-    //double currentMaxSpeed = BASE_SPEED + (rightTrigger * MAX_TRIGGER_BOOST);
-    
-    //double moveValue = leftStickY * currentMaxSpeed;
-    //double rotateValue = rightStickX * TURN_SENSITIVITY;
-    
-    //myDrive.arcadeDrive(moveValue, rotateValue);
+    myDrive.tankDrive(gamepad1.getLeftY(), gamepad1.getRightY());
     
     //elevator motor
     double leftStickY = gamepad2.getLeftY();
-    elevMotor.set(-leftStickY);
+    elevMotor.set(-leftStickY*0.4);
   }
 
   /** This function is called once when the robot is disabled. */
