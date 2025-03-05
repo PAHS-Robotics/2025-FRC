@@ -15,7 +15,6 @@ import com.revrobotics.spark.config.SparkMaxConfig;
 import com.revrobotics.spark.SparkLowLevel.MotorType;
 import com.revrobotics.spark.SparkBase.PersistMode;
 import com.revrobotics.spark.SparkBase.ResetMode;
-import com.revrobotics.CANSparkMax;
 
 import edu.wpi.first.wpilibj.drive.DifferentialDrive;
 import edu.wpi.first.wpilibj.motorcontrol.Spark;
@@ -63,19 +62,14 @@ public class Robot extends TimedRobot {
     m_chooser.addOption("Just Drive", kJustDrive);
     SmartDashboard.putData("Auto choices", m_chooser);
 
-    driveConfig.smartCurrentLimit(80);
+    driveConfig.smartCurrentLimit(60);
     driveConfig.voltageCompensation(12);
-/*
+
     driveConfig.follow(leftLeader);
     leftFollower.configure(driveConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
 
     driveConfig.follow(rightLeader);
     rightFollower.configure(driveConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
-*/
-    //test
-    leftFollower.follow(leftLeader);
-    rightFollower.follow(rightLeader);
-    //end test
 
     driveConfig.disableFollowerMode();
     driveConfig.inverted(true);
@@ -139,7 +133,7 @@ public class Robot extends TimedRobot {
   @Override
   public void teleopPeriodic() {
     //arcade drive
-    myDrive.tankDrive(gamepad1.getLeftY(), gamepad1.getRightY());
+    myDrive.arcadeDrive(gamepad1.getLeftY(), gamepad1.getRightX());
     
     //elevator motor
     double leftStickY = gamepad2.getLeftY();
