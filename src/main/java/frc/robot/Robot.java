@@ -51,10 +51,6 @@ public class Robot extends TimedRobot {
 
   private final XboxController gamepad1 = new XboxController(0);
   private final XboxController gamepad2 = new XboxController(1);
-
-  final double BASE_SPEED = 0.6;
-  final double MAX_TRIGGER_BOOST = 0.4;
-  final double TURN_SENSITIVITY = 0.5;
   
   /**
    * This function is run when the robot is first started up and should be used for any
@@ -137,7 +133,7 @@ public class Robot extends TimedRobot {
   @Override
   public void teleopPeriodic() {
     //arcade drive
-    myDrive.arcadeDrive(gamepad1.getLeftY()/DRIVE_SPEED, gamepad1.getRightX()/DRIVE_SPEED);
+    myDrive.arcadeDrive(gamepad1.getLeftY(), gamepad1.getRightX());
     
     //elevator motor
     double leftStickY = gamepad2.getLeftY();
