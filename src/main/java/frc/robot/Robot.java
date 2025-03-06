@@ -62,7 +62,7 @@ public class Robot extends TimedRobot {
     m_chooser.addOption("Just Drive", kJustDrive);
     SmartDashboard.putData("Auto choices", m_chooser);
 
-    driveConfig.smartCurrentLimit(60);
+    driveConfig.smartCurrentLimit(40); // Reduce from 60A to 40A
     driveConfig.voltageCompensation(12);
 
     driveConfig.follow(leftLeader);
@@ -75,14 +75,16 @@ public class Robot extends TimedRobot {
     driveConfig.inverted(true);
     rightLeader.configure(driveConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
 
+    driveConfig.openLoopRampRate(0.5); // Add a 0.5 second ramp rate
+    
     //flip left motor to reverse
     driveConfig.inverted(false);
     leftLeader.configure(driveConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
   
     rollerConfig.smartCurrentLimit(60);
     rollerConfig.voltageCompensation(10);
-    elevMotor.configure(driveConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
-    coralMotor.configure(driveConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
+    elevMotor.configure(rollerConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
+    coralMotor.configure(rollerConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
 
     timer1.start();
   }
@@ -133,10 +135,18 @@ public class Robot extends TimedRobot {
   @Override
   public void teleopPeriodic() {
     //arcade drive
-    myDrive.arcadeDrive(gamepad1.getLeftY(), gamepad1.getRightX());
+    double throttle = gamepad1.getLeftY() * 0.8;
+    double rotation = gamepad1.getRightX() * 0.7;
+
+    myDrive.arcadeDrive(throttle, rotation);
     
     //curvature drive
-    //myDrive.curvatureDrive(gamepad1.getLeftY(), gamepad1.getRightX(), gamepad1.getRightTriggerAxis());
+    /*
+    double throttle = gamepad1.getLeftY() * 0.8;
+    double rotation = gamepad1.getRightX() * 0.7;
+  
+    myDrive.curvatureDrive(throttle, rotation, gamepad1.getRightTriggerAxis());
+    */
   
     //elevator motor
     double leftStickY = gamepad2.getLeftY();
