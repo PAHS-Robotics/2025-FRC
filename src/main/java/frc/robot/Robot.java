@@ -150,11 +150,11 @@ public class Robot extends TimedRobot {
   
     //elevator motor
     double leftStickY = gamepad2.getLeftY();
-    elevMotor.set(-leftStickY*0.4);
+    elevMotor.set(-leftStickY * 0.4);
 
     //coral motor
     double rightStickY = gamepad2.getRightY();
-    coralMotor.set(rightStickY);
+    coralMotor.set(rightStickY * 0.4);
   }
 
   /** This function is called once when the robot is disabled. */
