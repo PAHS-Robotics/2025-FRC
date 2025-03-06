@@ -133,10 +133,10 @@ public class Robot extends TimedRobot {
   @Override
   public void teleopPeriodic() {
     //arcade drive
-    //myDrive.arcadeDrive(gamepad1.getLeftY(), gamepad1.getRightX());
+    myDrive.arcadeDrive(gamepad1.getLeftY(), gamepad1.getRightX());
     
     //curvature drive
-    myDrive.curvatureDrive(gamepad1.getLeftY(), gamepad1.getRightX(), gamepad1.getRightTriggerAxis());
+    //myDrive.curvatureDrive(gamepad1.getLeftY(), gamepad1.getRightX(), gamepad1.getRightTriggerAxis());
   
     //elevator motor
     double leftStickY = gamepad2.getLeftY();
