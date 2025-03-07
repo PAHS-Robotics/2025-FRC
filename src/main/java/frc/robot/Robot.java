@@ -136,25 +136,17 @@ public class Robot extends TimedRobot {
   public void teleopPeriodic() {
     //arcade drive
     double throttle = gamepad1.getLeftY() * 0.8;
-    double rotation = gamepad1.getRightX() * 0.7;
+    double rotation = gamepad1.getRightX() * 0.5;
 
     myDrive.arcadeDrive(throttle, rotation);
-    
-    //curvature drive
-    /*
-    double throttle = gamepad1.getLeftY() * 0.8;
-    double rotation = gamepad1.getRightX() * 0.7;
-  
-    myDrive.curvatureDrive(throttle, rotation, gamepad1.getRightTriggerAxis());
-    */
-  
+
     //elevator motor
     double leftStickY = gamepad2.getLeftY();
-    elevMotor.set(-leftStickY * 0.4);
+    elevMotor.set(-leftStickY * 0.5);
 
     //coral motor
     double rightStickY = gamepad2.getRightY();
-    coralMotor.set(rightStickY * 0.4);
+    coralMotor.set(rightStickY * 0.1);
   }
 
   /** This function is called once when the robot is disabled. */
