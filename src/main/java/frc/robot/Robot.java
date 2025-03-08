@@ -4,6 +4,7 @@
 
 package frc.robot;
 
+import edu.wpi.first.cameraserver.CameraServer;
 import edu.wpi.first.wpilibj.TimedRobot;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
@@ -29,8 +30,7 @@ import edu.wpi.first.wpilibj.XboxController;
  */
 public class Robot extends TimedRobot {
   private static final String kDefaultAuto = "Default";
-  private static final String kCenterCoral = "Center and Coral";
-  private static final String kJustDrive = "Just Drive";
+  private static final String kMiddleAuto = "Middle Auto";
   private String m_autoSelected;
   private final SendableChooser<String> m_chooser = new SendableChooser<>();
 
@@ -57,9 +57,10 @@ public class Robot extends TimedRobot {
    * initialization code.
    */
   public Robot() {
+    CameraServer.startAutomaticCapture();
+
     m_chooser.setDefaultOption("Default Auto", kDefaultAuto);
-    m_chooser.addOption("Center and Coral", kCenterCoral);
-    m_chooser.addOption("Just Drive", kJustDrive);
+    m_chooser.addOption("Middle Auto", kMiddleAuto);
     SmartDashboard.putData("Auto choices", m_chooser);
 
     driveConfig.smartCurrentLimit(40); // Reduce from 60A to 40A
@@ -121,8 +122,30 @@ public class Robot extends TimedRobot {
   @Override
   public void autonomousPeriodic() {
     switch (m_autoSelected) {
+      case kMiddleAuto:
+        //drive forward to the reef
+        //raise elevator to l3
+        //deposit coral
+        //stop everything
+        if(timer1.get() < 3.5){
+          myDrive.tankDrive(0.35, 0.3);
+        }
+        else if (timer1.get() < 5){
+          myDrive.tankDrive(0, 0);
+          elevMotor.set(0.8);
+        }
+        else if (timer1.get() < 7){
+          elevMotor.set(0);
+          coralMotor.set(0.3);
+        }
+        else {
+          coralMotor.set(0);
+        }
+        break;
+      case kDefaultAuto:
+        break;
       default:
-      break;
+        break;
     }
   }
 
@@ -142,11 +165,11 @@ public class Robot extends TimedRobot {
 
     //elevator motor
     double leftStickY = gamepad2.getLeftY();
-    elevMotor.set(-leftStickY * 0.5);
+    elevMotor.set(-leftStickY * 0.8);
 
     //coral motor
     double rightStickY = gamepad2.getRightY();
-    coralMotor.set(rightStickY * 0.1);
+    coralMotor.set(rightStickY * 0.15);
   }
 
   /** This function is called once when the robot is disabled. */
