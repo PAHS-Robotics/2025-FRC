@@ -14,6 +14,8 @@ import java.lang.module.ModuleDescriptor.Exports.Modifier;
 import com.revrobotics.spark.SparkMax;
 import com.revrobotics.spark.config.SparkMaxConfig;
 import com.revrobotics.spark.SparkLowLevel.MotorType;
+import com.revrobotics.RelativeEncoder;
+import com.revrobotics.spark.SparkAbsoluteEncoder;
 import com.revrobotics.spark.SparkBase.PersistMode;
 import com.revrobotics.spark.SparkBase.ResetMode;
 
@@ -42,6 +44,8 @@ public class Robot extends TimedRobot {
   private final DifferentialDrive myDrive = new DifferentialDrive(leftLeader, rightLeader);
 
   private final SparkMax elevMotor = new SparkMax(14, MotorType.kBrushed);
+  private final RelativeEncoder elevEncoder = elevMotor.getEncoder();
+
   private final SparkMax coralMotor = new SparkMax(17, MotorType.kBrushless);
 
   private final SparkMaxConfig driveConfig = new SparkMaxConfig();
@@ -57,7 +61,7 @@ public class Robot extends TimedRobot {
    * initialization code.
    */
   public Robot() {
-    CameraServer.startAutomaticCapture();
+    //CameraServer.startAutomaticCapture();
 
     m_chooser.setDefaultOption("Default Auto", kDefaultAuto);
     m_chooser.addOption("Middle Auto", kMiddleAuto);
@@ -82,7 +86,7 @@ public class Robot extends TimedRobot {
     driveConfig.inverted(false);
     leftLeader.configure(driveConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
   
-    rollerConfig.smartCurrentLimit(60);
+    rollerConfig.smartCurrentLimit(30);
     rollerConfig.voltageCompensation(10);
     elevMotor.configure(rollerConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
     coralMotor.configure(rollerConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
@@ -116,6 +120,7 @@ public class Robot extends TimedRobot {
     // m_autoSelected = SmartDashboard.getString("Auto Selector", kDefaultAuto);
     System.out.println("Auto selected: " + m_autoSelected);
     timer1.restart();
+    timer1.reset();
   }
 
   /** This function is called periodically during autonomous. */
@@ -123,28 +128,32 @@ public class Robot extends TimedRobot {
   public void autonomousPeriodic() {
     switch (m_autoSelected) {
       case kMiddleAuto:
-        //drive forward to the reef
-        //raise elevator to l3
-        //deposit coral
-        //stop everything
         if(timer1.get() < 3.5){
-          myDrive.tankDrive(0.35, 0.3);
+          myDrive.arcadeDrive(-0.5, 0);
         }
         else if (timer1.get() < 5){
-          myDrive.tankDrive(0, 0);
-          elevMotor.set(0.8);
+          myDrive.arcadeDrive(0, 0);
+          elevMotor.set(0);
         }
         else if (timer1.get() < 7){
           elevMotor.set(0);
-          coralMotor.set(0.3);
+          coralMotor.set(-0.1);
         }
         else {
           coralMotor.set(0);
         }
         break;
       case kDefaultAuto:
+        System.out.println("defalt auto");
+        myDrive.arcadeDrive(-0.3, 0);
         break;
       default:
+        if (timer1.get() < 3){
+          myDrive.arcadeDrive(-0.3, 0);
+        }
+        else {
+          myDrive.arcadeDrive(0, 0);
+        }
         break;
     }
   }
@@ -159,17 +168,41 @@ public class Robot extends TimedRobot {
   public void teleopPeriodic() {
     //arcade drive
     double throttle = gamepad1.getLeftY() * 0.8;
-    double rotation = gamepad1.getRightX() * 0.5;
+    double rotation = gamepad1.getRightX() * 0.8;
 
     myDrive.arcadeDrive(throttle, rotation);
 
+    /*elevator motor
+    if (gamepad2.getLeftTriggerAxis() == 1){
+      double leftStickY = gamepad2.getLeftY();
+      elevMotor.set(-leftStickY * 0.8);
+    }
+    else if (gamepad2.getAButton()){
+      System.out.println("hello world");
+    }*/
+
     //elevator motor
-    double leftStickY = gamepad2.getLeftY();
-    elevMotor.set(-leftStickY * 0.8);
+    if (gamepad2.getLeftTriggerAxis() == 1) {
+      double leftStickY = gamepad2.getLeftY();
+      elevMotor.set(-leftStickY * 0.8);
+    } 
+    else if (gamepad2.getAButton()) {
+      double currentPosition = elevEncoder.getPosition();
+      double targetPosition = currentPosition + 5.0; // Adjust this value based on your encoder units
+      
+      if (elevEncoder.getPosition() < targetPosition) {
+          elevMotor.set(-0.3);
+      } else {
+          elevMotor.set(0);
+      }
+    }
+    else {
+      elevMotor.set(0);
+    }
 
     //coral motor
     double rightStickY = gamepad2.getRightY();
-    coralMotor.set(rightStickY * 0.15);
+    coralMotor.set(rightStickY);
   }
 
   /** This function is called once when the robot is disabled. */
