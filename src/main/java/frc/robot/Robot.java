@@ -4,26 +4,19 @@
 
 package frc.robot;
 
-import edu.wpi.first.cameraserver.CameraServer;
-import edu.wpi.first.wpilibj.TimedRobot;
-import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
-import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
-
-import java.lang.module.ModuleDescriptor.Exports.Modifier;
-
-import com.revrobotics.spark.SparkMax;
-import com.revrobotics.spark.config.SparkMaxConfig;
-import com.revrobotics.spark.SparkLowLevel.MotorType;
 import com.revrobotics.RelativeEncoder;
-import com.revrobotics.spark.SparkAbsoluteEncoder;
 import com.revrobotics.spark.SparkBase.PersistMode;
 import com.revrobotics.spark.SparkBase.ResetMode;
+import com.revrobotics.spark.SparkLowLevel.MotorType;
+import com.revrobotics.spark.SparkMax;
+import com.revrobotics.spark.config.SparkMaxConfig;
 
-import edu.wpi.first.wpilibj.drive.DifferentialDrive;
-import edu.wpi.first.wpilibj.motorcontrol.Spark;
+import edu.wpi.first.wpilibj.TimedRobot;
 import edu.wpi.first.wpilibj.Timer;
-
 import edu.wpi.first.wpilibj.XboxController;
+import edu.wpi.first.wpilibj.drive.DifferentialDrive;
+import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 
 /**
  * The methods in this class are called automatically corresponding to each mode, as described in
@@ -55,6 +48,19 @@ public class Robot extends TimedRobot {
 
   private final XboxController gamepad1 = new XboxController(0);
   private final XboxController gamepad2 = new XboxController(1);
+
+  //elevator positions
+  private static final double ELEV_BOTTOM = 0.0;
+  private static final double ELEV_INTAKE = 10.0;
+  private static final double ELEV_L2 = 20.0;
+  
+  //motor speeds
+  private static final double ELEV_UP_SPEED = 0.4;
+  private static final double ELEV_DOWN_SPEED = 0.25;
+
+  //target positions
+  private double elevatorTargetPosition = ELEV_BOTTOM;
+  private boolean elevatorMoving = false;
   
   /**
    * This function is run when the robot is first started up and should be used for any
@@ -167,7 +173,7 @@ public class Robot extends TimedRobot {
   @Override
   public void teleopPeriodic() {
     //arcade drive
-    double throttle = gamepad1.getLeftY() * 0.8;
+    double throttle = gamepad1.getLeftY();
     double rotation = gamepad1.getRightX() * 0.8;
 
     myDrive.arcadeDrive(throttle, rotation);
@@ -182,22 +188,45 @@ public class Robot extends TimedRobot {
     }*/
 
     //elevator motor
+    double elevatorCurrentPosition = elevEncoder.getPosition();
+    
     if (gamepad2.getLeftTriggerAxis() == 1) {
-      double leftStickY = gamepad2.getLeftY();
-      elevMotor.set(-leftStickY * 0.8);
+        double leftStickY = gamepad2.getLeftY();
+        elevMotor.set(-leftStickY * 0.8);
+        elevatorMoving = false;
     } 
-    else if (gamepad2.getAButton()) {
-      double currentPosition = elevEncoder.getPosition();
-      double targetPosition = currentPosition + 5.0; // Adjust this value based on your encoder units
-      
-      if (elevEncoder.getPosition() < targetPosition) {
-          elevMotor.set(-0.3);
-      } else {
-          elevMotor.set(0);
-      }
+    else if (gamepad2.getAButtonPressed()) {
+        elevatorTargetPosition = ELEV_BOTTOM;
+        elevatorMoving = true;
     }
-    else {
-      elevMotor.set(0);
+    else if (gamepad2.getBButtonPressed()) {
+        elevatorTargetPosition = ELEV_INTAKE;
+        elevatorMoving = true;
+    }
+    else if (gamepad2.getYButtonPressed()) {
+        elevatorTargetPosition = ELEV_L2;
+        elevatorMoving = true;
+    }
+    
+    if (elevatorMoving) {
+        elevatorCurrentPosition = elevEncoder.getPosition();
+        
+        double positionError = elevatorTargetPosition - elevatorCurrentPosition;
+        double deadband = 0.5;
+        
+        if (Math.abs(positionError) < deadband) {
+            elevMotor.set(0);
+            elevatorMoving = false;
+        }
+        else if (positionError > 0) {
+            elevMotor.set(-Math.abs(ELEV_UP_SPEED));
+        }
+        else {
+            elevMotor.set(Math.abs(ELEV_DOWN_SPEED));
+        }
+    }
+    else if (gamepad2.getLeftTriggerAxis() != 1) {
+        elevMotor.set(0);
     }
 
     //coral motor
