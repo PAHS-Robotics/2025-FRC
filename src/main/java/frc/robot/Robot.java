@@ -193,8 +193,8 @@ public class Robot extends TimedRobot {
 
     //ELEVATOR MOTOR
     double elevatorCurrentPosition = elevEncoder.getPosition();
-    
-    if (gamepad2.getLeftTriggerAxis() == 1) {
+  
+    if (gamepad2.getLeftTriggerAxis() >= 0.5) {
         double leftStickY = gamepad2.getLeftY();
         elevMotor.set(-leftStickY * 0.8);
         elevatorMoving = false;
@@ -229,7 +229,7 @@ public class Robot extends TimedRobot {
             elevMotor.set(Math.abs(ELEV_DOWN_SPEED));
         }
     }
-    else if (gamepad2.getLeftTriggerAxis() != 1) {
+    else if (gamepad2.getLeftTriggerAxis() <= 0.5) {
         elevMotor.set(0);
     }
 
@@ -247,7 +247,7 @@ public class Robot extends TimedRobot {
             coralMotor.set(0);
         }
     } 
-    else if (!coralXButtonActive) {
+    else if (!coralXButtonActive && gamepad2.getRightTriggerAxis() >= 0.5) {
         double rightStickY = gamepad2.getRightY();
         coralMotor.set(rightStickY * 0.2);
     }
