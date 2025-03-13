@@ -49,18 +49,22 @@ public class Robot extends TimedRobot {
   private final XboxController gamepad1 = new XboxController(0);
   private final XboxController gamepad2 = new XboxController(1);
 
-  //elevator positions
+  //ELEVATOR AUTO CONSTANTS 
   private static final double ELEV_BOTTOM = 0.0;
-  private static final double ELEV_INTAKE = 10.0;
-  private static final double ELEV_L2 = 20.0;
+  private static final double ELEV_INTAKE = 1.0;
+  private static final double ELEV_L2 = 2.0;
   
-  //motor speeds
   private static final double ELEV_UP_SPEED = 0.4;
   private static final double ELEV_DOWN_SPEED = 0.25;
 
-  //target positions
   private double elevatorTargetPosition = ELEV_BOTTOM;
   private boolean elevatorMoving = false;
+
+  //CORAL MOTOR CONSTANTS
+  private static final double CORAL_X_BUTTON_SPEED = 0.5;
+  private static final double CORAL_X_BUTTON_DURATION = 0.2;
+  private boolean coralXButtonActive = false;
+  private double coralXButtonStartTime = 0;
   
   /**
    * This function is run when the robot is first started up and should be used for any
@@ -73,7 +77,7 @@ public class Robot extends TimedRobot {
     m_chooser.addOption("Middle Auto", kMiddleAuto);
     SmartDashboard.putData("Auto choices", m_chooser);
 
-    driveConfig.smartCurrentLimit(40); // Reduce from 60A to 40A
+    driveConfig.smartCurrentLimit(40); //reduced from 60 to 40
     driveConfig.voltageCompensation(12);
 
     driveConfig.follow(leftLeader);
@@ -172,13 +176,13 @@ public class Robot extends TimedRobot {
   /** This function is called periodically during operator control. */
   @Override
   public void teleopPeriodic() {
-    //arcade drive
+    //ARCADE DRIVE
     double throttle = gamepad1.getLeftY();
     double rotation = gamepad1.getRightX() * 0.8;
 
     myDrive.arcadeDrive(throttle, rotation);
 
-    /*elevator motor
+    /* //old elevator motor
     if (gamepad2.getLeftTriggerAxis() == 1){
       double leftStickY = gamepad2.getLeftY();
       elevMotor.set(-leftStickY * 0.8);
@@ -187,7 +191,7 @@ public class Robot extends TimedRobot {
       System.out.println("hello world");
     }*/
 
-    //elevator motor
+    //ELEVATOR MOTOR
     double elevatorCurrentPosition = elevEncoder.getPosition();
     
     if (gamepad2.getLeftTriggerAxis() == 1) {
@@ -229,9 +233,24 @@ public class Robot extends TimedRobot {
         elevMotor.set(0);
     }
 
-    //coral motor
-    double rightStickY = gamepad2.getRightY();
-    coralMotor.set(rightStickY);
+    //CORAL MOTOR
+    if (gamepad2.getXButtonPressed() && !coralXButtonActive) {
+        coralXButtonActive = true;
+        coralXButtonStartTime = timer1.get();
+        coralMotor.set(CORAL_X_BUTTON_SPEED);
+    } 
+    else if (coralXButtonActive) {
+        if (timer1.get() - coralXButtonStartTime < CORAL_X_BUTTON_DURATION) {
+            coralMotor.set(CORAL_X_BUTTON_SPEED);
+        } else {
+            coralXButtonActive = false;
+            coralMotor.set(0);
+        }
+    } 
+    else if (!coralXButtonActive) {
+        double rightStickY = gamepad2.getRightY();
+        coralMotor.set(rightStickY * 0.2);
+    }
   }
 
   /** This function is called once when the robot is disabled. */
