@@ -18,6 +18,8 @@ import edu.wpi.first.wpilibj.drive.DifferentialDrive;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 
+import edu.wpi.first.cameraserver.CameraServer;
+
 /**
  * The methods in this class are called automatically corresponding to each mode, as described in
  * the TimedRobot documentation. If you change the name of this class or the package after creating
@@ -50,19 +52,20 @@ public class Robot extends TimedRobot {
   private final XboxController gamepad2 = new XboxController(1);
 
   //ELEVATOR AUTO CONSTANTS 
-  private static final double ELEV_BOTTOM = 0.0;
-  private static final double ELEV_INTAKE = 1.0;
-  private static final double ELEV_L2 = 2.0;
+  private static final double ELEV_BOTTOM = 0;
+  private static final double ELEV_INTAKE = 0.2;
+  private static final double ELEV_L2 = 0.35;
+  private double ELEV_FLOOR;
   
-  private static final double ELEV_UP_SPEED = 0.4;
-  private static final double ELEV_DOWN_SPEED = 0.25;
+  private static final double ELEV_UP_SPEED = 0.5;
+  private static final double ELEV_DOWN_SPEED = 0.1;
 
-  private double elevatorTargetPosition = ELEV_BOTTOM;
+  private double elevatorTargetPosition = 0;
   private boolean elevatorMoving = false;
 
   //CORAL MOTOR CONSTANTS
-  private static final double CORAL_X_BUTTON_SPEED = 0.5;
-  private static final double CORAL_X_BUTTON_DURATION = 0.2;
+  private static final double CORAL_X_BUTTON_SPEED = 0.05;
+  private static final double CORAL_X_BUTTON_DURATION = 0.3;
   private boolean coralXButtonActive = false;
   private double coralXButtonStartTime = 0;
   
@@ -71,7 +74,7 @@ public class Robot extends TimedRobot {
    * initialization code.
    */
   public Robot() {
-    //CameraServer.startAutomaticCapture();
+    CameraServer.startAutomaticCapture();
 
     m_chooser.setDefaultOption("Default Auto", kDefaultAuto);
     m_chooser.addOption("Middle Auto", kMiddleAuto);
@@ -143,10 +146,8 @@ public class Robot extends TimedRobot {
         }
         else if (timer1.get() < 5){
           myDrive.arcadeDrive(0, 0);
-          elevMotor.set(0);
         }
         else if (timer1.get() < 7){
-          elevMotor.set(0);
           coralMotor.set(-0.1);
         }
         else {
@@ -171,6 +172,14 @@ public class Robot extends TimedRobot {
   /** This function is called once when teleop is enabled. */
   @Override
   public void teleopInit() {
+    double currentPosition = elevEncoder.getPosition();
+    
+    ELEV_FLOOR = currentPosition + 0.05;
+    
+    elevatorTargetPosition = ELEV_FLOOR;
+    elevatorMoving = true;
+    
+    System.out.println("Teleop initialized. Elevator floor set to: " + ELEV_FLOOR);
   }
 
   /** This function is called periodically during operator control. */
@@ -182,25 +191,24 @@ public class Robot extends TimedRobot {
 
     myDrive.arcadeDrive(throttle, rotation);
 
-    /* //old elevator motor
-    if (gamepad2.getLeftTriggerAxis() == 1){
-      double leftStickY = gamepad2.getLeftY();
-      elevMotor.set(-leftStickY * 0.8);
-    }
-    else if (gamepad2.getAButton()){
-      System.out.println("hello world");
-    }*/
-
     //ELEVATOR MOTOR
     double elevatorCurrentPosition = elevEncoder.getPosition();
+    
+    SmartDashboard.putNumber("Elevator Position", elevatorCurrentPosition);
+    SmartDashboard.putNumber("Target Position", elevatorTargetPosition);
+    SmartDashboard.putBoolean("Elevator Moving", elevatorMoving);
   
     if (gamepad2.getLeftTriggerAxis() >= 0.5) {
-        double leftStickY = gamepad2.getLeftY();
-        elevMotor.set(-leftStickY * 0.8);
-        elevatorMoving = false;
+      double leftStickY = gamepad2.getLeftY();
+      if (leftStickY > 0 && elevatorCurrentPosition <= ELEV_FLOOR) {
+          elevMotor.set(0);
+      } else {
+          elevMotor.set(-leftStickY * 0.8);
+      }
+      elevatorMoving = false;
     } 
     else if (gamepad2.getAButtonPressed()) {
-        elevatorTargetPosition = ELEV_BOTTOM;
+        elevatorTargetPosition = Math.max(ELEV_BOTTOM, ELEV_FLOOR);
         elevatorMoving = true;
     }
     else if (gamepad2.getBButtonPressed()) {
@@ -216,17 +224,22 @@ public class Robot extends TimedRobot {
         elevatorCurrentPosition = elevEncoder.getPosition();
         
         double positionError = elevatorTargetPosition - elevatorCurrentPosition;
-        double deadband = 0.5;
+        double deadband = 0.05;
         
         if (Math.abs(positionError) < deadband) {
             elevMotor.set(0);
             elevatorMoving = false;
         }
         else if (positionError > 0) {
-            elevMotor.set(-Math.abs(ELEV_UP_SPEED));
+            elevMotor.set(Math.abs(ELEV_UP_SPEED));
         }
         else {
-            elevMotor.set(Math.abs(ELEV_DOWN_SPEED));
+            if (elevatorCurrentPosition > ELEV_FLOOR || positionError > 0) {
+                elevMotor.set(-Math.abs(ELEV_DOWN_SPEED));
+            } else {
+                elevMotor.set(0);
+                elevatorMoving = false;
+            }
         }
     }
     else if (gamepad2.getLeftTriggerAxis() <= 0.5) {
@@ -237,11 +250,11 @@ public class Robot extends TimedRobot {
     if (gamepad2.getXButtonPressed() && !coralXButtonActive) {
         coralXButtonActive = true;
         coralXButtonStartTime = timer1.get();
-        coralMotor.set(CORAL_X_BUTTON_SPEED);
+        coralMotor.set(-CORAL_X_BUTTON_SPEED);
     } 
     else if (coralXButtonActive) {
         if (timer1.get() - coralXButtonStartTime < CORAL_X_BUTTON_DURATION) {
-            coralMotor.set(CORAL_X_BUTTON_SPEED);
+            coralMotor.set(-CORAL_X_BUTTON_SPEED);
         } else {
             coralXButtonActive = false;
             coralMotor.set(0);
